@@ -12,8 +12,13 @@ Usage: rebuild-sign-install.sh APKTOOL_PROJECT --keystore PATH [options]
   --zipalign PATH    Explicit zipalign binary
   --apksigner PATH   Explicit apksigner executable or JAR
   --alias NAME       Key alias (default: androiddebugkey)
-  --store-pass PASS  Keystore password (default: android)
-  --key-pass PASS    Key password (default: android)
+  --store-pass PASS  Keystore password (default: android or REBUILD_STORE_PASS)
+  --key-pass PASS    Key password (default: android or REBUILD_KEY_PASS)
+
+Prefer the environment for non-default credentials: REBUILD_STORE_PASS and
+REBUILD_KEY_PASS keep passwords out of process arguments; --store-pass and
+--key-pass override them when passed explicitly.
+
   --install          Install the signed APK
   --reinstall        adb install -r; only when the installed signer matches
   --device SERIAL    Target device
@@ -43,8 +48,8 @@ OUT_DIR=""
 BASE_NAME=""
 KEYSTORE="${ANDROID_DEBUG_KEYSTORE:-}"
 KEY_ALIAS="androiddebugkey"
-STORE_PASS="android"
-KEY_PASS="android"
+STORE_PASS="${REBUILD_STORE_PASS:-android}"
+KEY_PASS="${REBUILD_KEY_PASS:-android}"
 ZIPALIGN_BIN="${ZIPALIGN:-}"
 APKSIGNER_PATH="${APKSIGNER:-${APKSIGNER_JAR:-}}"
 DEVICE_SERIAL=""

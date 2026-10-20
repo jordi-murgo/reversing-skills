@@ -52,5 +52,60 @@ class DecodeFallbackTests(unittest.TestCase):
             self.assertIn("jadx_mode=per-dex-fallback", result.stdout)
 
 
+class DecodeNameSafetyTests(unittest.TestCase):
+    def decode_script(self) -> Path:
+        return ROOT / "apk-reversing-playbook" / "scripts" / "decode.sh"
+
+    def test_decode_rejects_traversal_name(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sibling = root / "sibling"
+            sibling.mkdir()
+            (sibling / "valuable.txt").write_text("keep", encoding="utf-8")
+            apk = root / "fixture.apk"
+            with zipfile.ZipFile(apk, "w") as archive:
+                archive.writestr("classes.dex", b"dex\n035\x00x")
+            result = subprocess.run(
+                [shutil.which("bash") or "bash", str(self.decode_script()),
+                 str(apk), "--out", str(root / "out"), "--name", "../sibling",
+                 "--skip-jadx", "--skip-apktool"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertTrue((sibling / "valuable.txt").is_file())
+            self.assertFalse((root / "sibling").is_symlink())
+
+    def test_decode_rejects_dotdot_derived_basename(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            parent = root / "parent"
+            parent.mkdir()
+            apk = parent / "...apk"
+            with zipfile.ZipFile(apk, "w") as archive:
+                archive.writestr("classes.dex", b"dex\n035\x00x")
+            result = subprocess.run(
+                [shutil.which("bash") or "bash", str(self.decode_script()),
+                 str(apk), "--out", str(root / "out"),
+                 "--skip-jadx", "--skip-apktool"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout)
+
+    def test_decode_accepts_plain_name_and_keeps_trees_inside_out(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            apk = root / "fixture.apk"
+            with zipfile.ZipFile(apk, "w") as archive:
+                archive.writestr("classes.dex", b"dex\n035\x00x")
+            result = subprocess.run(
+                [shutil.which("bash") or "bash", str(self.decode_script()),
+                 str(apk), "--out", str(root / "out"), "--name", "case",
+                 "--skip-jadx", "--skip-apktool"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((root / "out" / "case").is_dir())
+
+
 if __name__ == "__main__":
     unittest.main()

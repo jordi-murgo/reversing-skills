@@ -41,6 +41,44 @@ class ApkIntakeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unsafe archive member"):
                 module.extract_archive(source, root / "output")
 
+    def test_archive_budgets_reject_bomb_and_entry_flood(self) -> None:
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            # Compression-ratio bomb: highly compressible large member.
+            bomb = root / "bomb.apks"
+            with zipfile.ZipFile(bomb, "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("base.apk", b"\x00" * (64 * 1024 * 1024))
+            environment = os.environ.copy()
+            environment["INTAKE_MAX_COMPRESSION_RATIO"] = "1000"
+            environment["INTAKE_MAX_MEMBER_BYTES"] = str(1024 * 1024)
+            os.environ.update(environment)
+            try:
+                with self.assertRaisesRegex(ValueError, "compression ratio|expanded bytes"):
+                    module.extract_archive(bomb, root / "bomb-out")
+
+                # Entry-count flood guarded by INTAKE_MAX_ENTRIES.
+                flood = root / "flood.apks"
+                with zipfile.ZipFile(flood, "w") as archive:
+                    for index in range(4):
+                        archive.writestr(f"split-{index}.apk", b"PK\x05\x06" + b"\x00" * 18)
+                os.environ["INTAKE_MAX_ENTRIES"] = "2"
+                os.environ.pop("INTAKE_MAX_MEMBER_BYTES", None)
+                os.environ.pop("INTAKE_MAX_COMPRESSION_RATIO", None)
+                with self.assertRaisesRegex(ValueError, "non-directory entries"):
+                    module.extract_archive(flood, root / "flood-out")
+
+                # Healthy archive within budgets still extracts.
+                healthy = root / "healthy.apks"
+                with zipfile.ZipFile(healthy, "w") as archive:
+                    archive.writestr("base.apk", b"PK\x05\x06" + b"\x00" * 18)
+                os.environ.pop("INTAKE_MAX_ENTRIES", None)
+                module.extract_archive(healthy, root / "healthy-out")
+            finally:
+                for key in ("INTAKE_MAX_ENTRIES", "INTAKE_MAX_MEMBER_BYTES",
+                            "INTAKE_MAX_AGGREGATE_BYTES", "INTAKE_MAX_COMPRESSION_RATIO"):
+                    os.environ.pop(key, None)
+
     def test_split_set_manifest_preserves_inventory_and_uncertainty(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

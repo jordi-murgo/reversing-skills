@@ -17,6 +17,64 @@ import zipfile
 
 ARCHIVE_SUFFIXES = {".apks", ".xapk", ".apkm", ".zip"}
 
+# Budgets for attacker-controlled archives: cap entry count, per-member and
+# aggregate expanded size, and compression ratio so a small malicious archive
+# cannot exhaust analyst-host disk. Tuned for Android split sets, not malware
+# corpora that legitimately exceed these caps; pass explicit overrides below.
+MAX_ARCHIVE_ENTRIES = 512
+MAX_MEMBER_BYTES = 2 * 1024 * 1024 * 1024  # 2 GiB per expanded member
+MAX_AGGREGATE_BYTES = 8 * 1024 * 1024 * 1024  # 8 GiB total expanded
+MAX_COMPRESSION_RATIO = 2000
+
+
+def archive_budgets() -> tuple[int, int, int, int]:
+    return (
+        int(os.environ.get("INTAKE_MAX_ENTRIES", MAX_ARCHIVE_ENTRIES)),
+        int(os.environ.get("INTAKE_MAX_MEMBER_BYTES", MAX_MEMBER_BYTES)),
+        int(os.environ.get("INTAKE_MAX_AGGREGATE_BYTES", MAX_AGGREGATE_BYTES)),
+        int(os.environ.get("INTAKE_MAX_COMPRESSION_RATIO", MAX_COMPRESSION_RATIO)),
+    )
+
+
+def extract_archive(source: Path, destination: Path) -> list[Path]:
+    apks: list[Path] = []
+    max_entries, max_member, max_aggregate, max_ratio = archive_budgets()
+    expanded = 0
+    with zipfile.ZipFile(source) as archive:
+        members = [info for info in archive.infolist() if not info.is_dir()]
+        if len(members) > max_entries:
+            raise ValueError(
+                f"archive exceeds {max_entries} non-directory entries: {len(members)}"
+            )
+        for info in members:
+            if not safe_member(info.filename):
+                raise ValueError(f"unsafe archive member: {info.filename}")
+            if PurePosixPath(info.filename).suffix.lower() != ".apk":
+                continue
+            declared_size = info.file_size
+            compressed = max(info.compress_size, 1)
+            if declared_size > max_member:
+                raise ValueError(
+                    f"archive member exceeds {max_member} expanded bytes: "
+                    f"{info.filename} ({declared_size})"
+                )
+            if declared_size / compressed > max_ratio:
+                raise ValueError(
+                    f"archive member compression ratio exceeds {max_ratio}: "
+                    f"{info.filename} ({declared_size}/{compressed})"
+                )
+            expanded += declared_size
+            if expanded > max_aggregate:
+                raise ValueError(
+                    f"archive exceeds {max_aggregate} aggregate expanded bytes"
+                )
+            target = destination.joinpath(*PurePosixPath(info.filename).parts)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(info) as incoming, target.open("xb") as outgoing:
+                shutil.copyfileobj(incoming, outgoing)
+            apks.append(target)
+    return sorted(apks)
+
 
 def digest(path: Path) -> tuple[str, int]:
     value = hashlib.sha256()
@@ -54,22 +112,6 @@ def apksigner_command() -> list[str] | None:
         return [shutil.which("java") or "java", "-jar", jar]
     tool = sdk_tool("apksigner")
     return [tool] if tool else None
-
-
-def extract_archive(source: Path, destination: Path) -> list[Path]:
-    apks: list[Path] = []
-    with zipfile.ZipFile(source) as archive:
-        for info in archive.infolist():
-            if not safe_member(info.filename):
-                raise ValueError(f"unsafe archive member: {info.filename}")
-            if info.is_dir() or PurePosixPath(info.filename).suffix.lower() != ".apk":
-                continue
-            target = destination.joinpath(*PurePosixPath(info.filename).parts)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with archive.open(info) as incoming, target.open("xb") as outgoing:
-                shutil.copyfileobj(incoming, outgoing)
-            apks.append(target)
-    return sorted(apks)
 
 
 def collect_apks(source: Path, staging: Path) -> tuple[str, list[Path]]:

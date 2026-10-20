@@ -1,8 +1,8 @@
 # reversing-skills
 
-Evidence-first reverse-engineering skills for coding agents. The initial release focuses on
-Android APK sets, packed native libraries, Frida runtime instrumentation, and authorized
-Arxan/GuardIT analysis.
+Evidence-first reverse-engineering skills for coding agents: native binaries, patch diffing,
+firmware, exploit stabilization, .NET, malware detection, Android, iOS, Frida runtime
+instrumentation, and authorized Arxan/GuardIT analysis.
 
 This repository is the upstream source of truth. Projects install copies into
 `.agents/skills/`; reusable improvements return here, while client-specific package names,

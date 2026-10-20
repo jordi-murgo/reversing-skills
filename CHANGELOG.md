@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a safe streaming DEX-only APK replacement helper, a clean-room firmware PoC workflow
+  for engagements without hardware, and a local-only landing-page indicator extractor with
+  bounded Base64 inspection and passive campaign guidance.
 - Add clean-room React Native/Hermes static analysis, Android Frida Gadget injection, and
   offline mobile attestation reconstruction skills with explicit authorization, evidence,
   redistribution, control-build, and backend-probing boundaries.

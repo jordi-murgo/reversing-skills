@@ -4,7 +4,7 @@ description: "Trigger: reverse APK, decompile Android app, diff APK builds, insp
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # APK reversing playbook
@@ -21,6 +21,7 @@ firmware, pure web applications, or targets outside written scope.
 - Treat an installed application as an APK set; inspect base plus every split and ABI.
 - Record hashes, signer, version, source, and tool versions before analysis.
 - Preserve per-DEX identity; never merge decompiler trees that can contain colliding paths.
+- Preserve originals; every decode, DEX replacement, rebuild, alignment, and signature uses a new destination.
 - Identify native code by ELF metadata and behavior, never filename alone.
 - Keep target artifacts, captures, credentials, tokens, PII, and runtime dumps outside VCS.
 - Mark inference explicitly and preserve failed approaches and residual unknowns.
@@ -31,6 +32,7 @@ firmware, pure web applications, or targets outside written scope.
 |---|---|
 | APK/APKS/XAPK/APKM, split directory, or installed package | Load `android-apk-intake` first |
 | Full-APK jadx fails or OOMs | Run `scripts/decode.sh`; retain isolated per-DEX trees |
+| apktool rebuild fails and only one DEX changes | Run `scripts/dex-swap-repack.py`; align/sign separately and require controls |
 | Random native filename or encrypted-looking code | Load `android-packed-native` |
 | Frida server, Java bridge, proxy, or pinning work | Load `android-frida-runtime` |
 | Root-free instrumentation through a re-signed APK | Load `android-frida-gadget` |
@@ -62,5 +64,7 @@ expected state under observation.
 ## References
 
 - `references/workflow.md` — concrete static, native, diff, and reporting commands.
+- `references/dex-swap-workflow.md` — replace one DEX without rebuilding resources, then validate with controls.
 - `scripts/decode.sh` — full-APK jadx with isolated per-DEX fallback.
 - `scripts/rebuild-sign-install.sh` — rebuild, align, sign, verify, and optional install.
+- `scripts/dex-swap-repack.py` — streaming, metadata-preserving replacement of one validated DEX entry.

@@ -12,7 +12,7 @@ hosts, captures, and findings stay in the consuming project.
 
 | Skill | Purpose |
 |---|---|
-| `apk-reversing-playbook` | Route a complete Android reversing engagement and provide OOM-safe decode/rebuild helpers |
+| `apk-reversing-playbook` | Route Android reversing and provide OOM-safe decode, DEX-only replacement, and rebuild helpers |
 | `android-apk-intake` | Inventory APK/APKS/XAPK/APKM files, installed split sets, signatures, ABIs, DEX and evidence manifests |
 | `android-packed-native` | Rank packed/encrypted ELF candidates from SONAME, exports, entropy, imports and ARM64 structure |
 | `android-structural-diff` | Compare obfuscated APK/DEX versions and malware corpora, with prepared records and known-library noise suppression |
@@ -25,10 +25,10 @@ hosts, captures, and findings stay in the consuming project.
 | `reverse-engineering` | Route general native analysis across compilers, custom VMs, packing and anti-analysis |
 | `binary-diff` | Migrate evidence-backed symbols and semantics across related native builds |
 | `patch-diff-exploit` | Reconstruct security fixes and validate bounded PoCs against before/after builds |
-| `firmware-pentest` | Extract, inventory, emulate and test authorized embedded firmware |
+| `firmware-pentest` | Extract, emulate and test firmware, including clean-room offline PoCs without hardware |
 | `pwn-chain` | Stabilize an understood memory-corruption primitive into a repeatable lab exploit |
 | `dotnet-reverse` | Identify, deobfuscate, inspect and patch managed .NET assemblies |
-| `malware-analysis` | Produce artifact lineage, behavior, IOCs and tested YARA/Sigma detections |
+| `malware-analysis` | Analyze samples or passive landing captures and produce defensible IOCs and detections |
 | `ios-app-reversing` | Analyze signed iOS bundles, Mach-O/ObjC/Swift code and exact-build runtime behavior |
 
 ## Design

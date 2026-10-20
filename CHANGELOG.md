@@ -2,13 +2,24 @@
 
 ## Unreleased
 
-## 0.1.0 - 2026-10-20
+## 0.1.0 - 2026-10-21
 
 - Add pinned CI for repository contracts, negative fixtures, the full test suite, and an
   `npx skills add` consumer install from a directory that is not a Git worktree.
-- Bound DEX replacement by archive entry, member, aggregate-size, and compression-ratio
-  budgets; bound passive landing analysis by capture count and aggregate decoded bytes;
-  normalize IDN hosts and remove URL credentials and query values from reports.
+- Bound DEX replacement by archive entry, central-directory, member, aggregate-size, and
+  compression-ratio budgets; reject parser-differential EOCD records; reconcile streamed central-
+  directory records with canonical EOCD/ZIP64 metadata before invoking Python's ZIP parser;
+  snapshot inputs once for hash-bound processing; and reject output-parent replacement around
+  descriptor-pinned publication. Bind passive capture validation and bounded reads to one
+  descriptor; make FIFO rejection nonblocking; reject output-parent replacement and malformed
+  encodings; normalize UTF-16 text for URL, marker, and Base64 analysis; recover bounded extra-slash
+  HTTP(S) authorities; cap HTML token length before parsing; follow browser first-value semantics for
+  duplicate attributes; extract active URL attributes, `srcset`, meta refresh, and network-path
+  hosts; normalize browser-ignored ASCII URL whitespace; cap per-file and global indicators, URL
+  characters, URL normalization attempts, and serialized report size; account every decoded byte;
+  preserve hosts when query fields are truncated; replace query names and values with one fixed
+  marker; reject browser-ambiguous authorities; normalize IDN hosts; escape runtime and argument-
+  parser diagnostics.
 - Add a safe streaming DEX-only APK replacement helper, a clean-room firmware PoC workflow
   for engagements without hardware, and a local-only landing-page indicator extractor with
   bounded Base64 inspection and passive campaign guidance.

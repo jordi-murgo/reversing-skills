@@ -22,12 +22,19 @@ python3 scripts/dex-swap-repack.py original.apk classes2-patched.dex \
   --authorization-ref ROE-REFERENCE
 ```
 
-The helper rejects symlinked inputs, existing outputs, unsafe or duplicate ZIP members, unsupported
-compression, archive entry/size/ratio budget violations, a missing target entry, and malformed DEX
-headers. Explicit `--max-*` flags can widen budgets for an evidenced large artifact. It streams
-unchanged members, preserves their ZIP metadata and ordering, and preserves the target entry's
-original stored/deflated policy. The original APK is opened read-only. Rewriting invalidates
-existing signatures; the JSON result therefore always reports signing as required.
+The helper rejects non-regular or symlinked inputs, every pre-existing output path (including
+dangling symlinks), unsafe or duplicate ZIP members, unsupported compression, archive
+entry/size/ratio budget violations, a missing target entry, and malformed DEX headers. It rejects a
+malformed last EOCD signature, resolves canonical EOCD/ZIP64 metadata, streams the bounded central-
+directory records before Python's ZIP parser is constructed, and requires the observed entry count
+and byte boundary to agree with the end records. It then copies each input once into a private
+snapshot while hashing it; validation and rebuilding use only those snapshots. Explicit `--max-*`
+flags can widen budgets for an evidenced large artifact. It streams unchanged members, preserves
+ZIP metadata and ordering, and retains the target entry's original stored/deflated policy. Output
+is written through one open descriptor and published without replacement relative to a parent
+descriptor pinned before input processing. Parent-path replacement is fatal. The original APK is
+opened read-only. Rewriting invalidates existing
+signatures; the JSON result therefore always reports signing as required.
 
 Run current pinned Android build-tools after replacement:
 

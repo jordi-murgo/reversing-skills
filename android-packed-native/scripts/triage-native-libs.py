@@ -124,12 +124,20 @@ def inspect_library(data: bytes, source: str, temp_dir: Path) -> dict[str, objec
 
 
 def collect(input_path: Path) -> list[tuple[str, bytes]]:
+    if input_path.is_symlink():
+        raise SystemExit(f"ERR: refusing symlinked input: {input_path}")
     if input_path.is_file() and input_path.suffix.lower() == ".so":
         return [(str(input_path.resolve()), input_path.read_bytes())]
     if input_path.is_file() and input_path.suffix.lower() == ".apk":
         apks = [input_path]
     elif input_path.is_dir():
-        result = [(str(path.resolve()), path.read_bytes()) for path in sorted(input_path.rglob("*.so"))]
+        result = []
+        for path in sorted(input_path.rglob("*")):
+            if path.is_symlink():
+                raise SystemExit(f"ERR: refusing symlinked input: {path}")
+        for path in sorted(input_path.rglob("*.so")):
+            if path.is_file():
+                result.append((str(path.resolve()), path.read_bytes()))
         for apk in sorted(input_path.rglob("*.apk")):
             result.extend(collect(apk))
         return result

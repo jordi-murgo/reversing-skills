@@ -4,7 +4,7 @@ description: "Trigger: packed Android SO, encrypted native library, random JNI l
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Android packed-native triage

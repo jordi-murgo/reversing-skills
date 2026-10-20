@@ -16,13 +16,20 @@ Use it as an isolated external dependency. The repository and package metadata d
 but the pinned repository has no `LICENSE` file. Do not copy its source, tests, prose, or assets
 into a skill. Reassess rights before changing this boundary.
 
-An operator may create an isolated environment explicitly; skills never install it silently:
+An operator may create an isolated environment explicitly; skills never install it silently.
+Create it under a randomized, analyst-owned path and delete it with the session; a fixed
+`/tmp` path lets another local user pre-create or race the directory:
 
 ```bash
-python3 -m venv /tmp/android-structural-diff
-/tmp/android-structural-diff/bin/pip install --pre 'twinflame==0.5.0b2'
-/tmp/android-structural-diff/bin/python -m pip show twinflame
+venv_dir="$(mktemp -d "${TMPDIR:-/tmp}/android-structural-diff.XXXXXX")" || exit 1
+trap 'rm -rf "$venv_dir"' EXIT INT TERM
+python3 -m venv "$venv_dir"
+"$venv_dir/bin/pip" install --pre 'twinflame==0.5.0b2'
+"$venv_dir/bin/python" -m pip show twinflame
 ```
+
+Record the chosen directory and keep it for the whole session; recreating the venv per
+command invalidates the pinned-environment premise.
 
 ## Scalable comparison
 

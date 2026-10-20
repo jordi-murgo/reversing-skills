@@ -91,16 +91,25 @@ cat > "$config_file" <<EOF
 EOF
 
 if [[ "$CHECK_ONLY" == "true" ]]; then
-    "$OMP_BIN" --config "$config_file" config get skills.customDirectories --json >/dev/null
-    "$OMP_BIN" --config "$config_file" config get skills.includeSkills --json >/dev/null
+    custom_json="$(PI_CONFIG_FILES="$config_file" "$OMP_BIN" config get skills.customDirectories --json)"
+    include_json="$(PI_CONFIG_FILES="$config_file" "$OMP_BIN" config get skills.includeSkills --json)"
+    [[ "$custom_json" == *"$ROOT"* ]] || {
+        echo "ERR: OMP did not load the generated custom skill directory" >&2
+        exit 1
+    }
+    for name in "${skill_names[@]}"; do
+        [[ "$include_json" == *"\"$name\""* ]] || {
+            echo "ERR: OMP did not load allowlisted skill: $name" >&2
+            exit 1
+        }
+    done
     printf 'omp=%s\nroot=%s\nskill_count=%d\n' "$OMP_BIN" "$ROOT" "${#skill_names[@]}"
     printf 'skill=%s\n' "${skill_names[@]}"
     printf 'extensions=disabled\nforeign_skill_sources=disabled\nmanaged_skills=filtered_by_exact_allowlist\n'
     exit 0
 fi
 
-"$OMP_BIN" \
-    --config "$config_file" \
+PI_CONFIG_FILES="$config_file" "$OMP_BIN" \
     --skills "$skill_csv" \
     --no-extensions \
     "$@"

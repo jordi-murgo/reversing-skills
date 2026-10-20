@@ -61,6 +61,18 @@ fi
 APK_BASENAME="$(basename "$APK_PATH" .apk | sed 's/[^A-Za-z0-9._-]/_/g')"
 TASK_NAME="${TASK_NAME:-$APK_BASENAME}"
 OUT_ROOT="${OUT_ROOT:-$(dirname "$APK_PATH")}"
+
+# Reject path-escape and trivially unsafe task names before any deletion or creation.
+case "$TASK_NAME" in
+    ""|"."|".."|*/*|*\\*)
+        echo "ERR: --name must be a plain name without path separators or traversal: $TASK_NAME" >&2
+        exit 2 ;;
+esac
+OUT_ROOT_CANONICAL="$(mkdir -p "$OUT_ROOT" && cd "$OUT_ROOT" && pwd -P)" || {
+    echo "ERR: output root is not an accessible directory: $OUT_ROOT" >&2
+    exit 1
+}
+OUT_ROOT="$OUT_ROOT_CANONICAL"
 TASK_ROOT="$OUT_ROOT/$TASK_NAME"
 JADX_OUT="$TASK_ROOT/jadx"
 JADX_DEX_OUT="$TASK_ROOT/jadx-dex"

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Harden artifact handling after a security review: reject `--name`/`--out` path escape in
+  `decode.sh` and `rebuild-sign-install.sh`, refuse symlinked inputs outside intake trees in
+  `intake-apk-set.py` and `triage-native-libs.py`, move the structural-diff venv recipe to a
+  `mktemp`-based path with session cleanup, and document digest verification for installs.
+
 - Establish the repository contract and offline verification suite.
 - Add split-aware Android artifact intake and evidence manifests.
 - Add OOM-safe APK decode and safe rebuild/sign helpers.

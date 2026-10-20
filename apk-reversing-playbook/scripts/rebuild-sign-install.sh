@@ -103,6 +103,18 @@ fi
 
 OUT_DIR="${OUT_DIR:-$(dirname "$PROJECT_DIR")}"
 BASE_NAME="${BASE_NAME:-$(basename "$PROJECT_DIR")}"
+
+# Reject path-escape and trivially unsafe output names before any deletion or creation.
+case "$BASE_NAME" in
+    ""|"."|".."|*/*|*\\*)
+        echo "ERR: --name must be a plain name without path separators or traversal: $BASE_NAME" >&2
+        exit 2 ;;
+esac
+OUT_DIR_CANONICAL="$(mkdir -p "$OUT_DIR" && cd "$OUT_DIR" && pwd -P)" || {
+    echo "ERR: output directory is not accessible: $OUT_DIR" >&2
+    exit 1
+}
+OUT_DIR="$OUT_DIR_CANONICAL"
 mkdir -p "$OUT_DIR"
 UNSIGNED_APK="$OUT_DIR/${BASE_NAME}-unsigned.apk"
 ALIGNED_APK="$OUT_DIR/${BASE_NAME}-aligned.apk"

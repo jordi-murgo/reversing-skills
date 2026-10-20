@@ -4,7 +4,7 @@ description: "Trigger: diff APK versions, R8 obfuscation, malware corpus, Twinfl
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Android structural diff

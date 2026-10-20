@@ -74,6 +74,12 @@ def extract_archive(source: Path, destination: Path) -> list[Path]:
 
 def collect_apks(source: Path, staging: Path) -> tuple[str, list[Path]]:
     if source.is_dir():
+        escaped = sorted(
+            path for path in source.rglob("*.apk")
+            if path.is_file() and path.is_symlink()
+        )
+        if escaped:
+            raise ValueError(f"refusing symlinked APK input: {escaped[0]}")
         apks = sorted(path for path in source.rglob("*.apk") if path.is_file())
         return "directory", apks
     suffix = source.suffix.lower()
@@ -205,7 +211,10 @@ def main() -> int:
             source_identity = f"package:{args.package}"
             apks = pull_installed_package(args.package, staging, args.adb, args.device)
         else:
-            source = args.source.expanduser().resolve()
+            source = args.source.expanduser()
+            if source.is_symlink():
+                raise SystemExit(f"ERR: refusing symlinked input: {source}")
+            source = source.resolve()
             if not source.exists():
                 raise SystemExit(f"ERR: source not found: {source}")
             kind, apks = collect_apks(source, staging)

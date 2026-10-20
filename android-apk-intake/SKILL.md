@@ -4,7 +4,7 @@ description: "Trigger: APK intake, split APK, APKS, XAPK, APKM, pull installed A
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Android APK intake

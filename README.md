@@ -69,11 +69,22 @@ reversing-skills/
 
 ## Install
 
+Clone a tagged revision and verify its release digest before running any repository script:
+
+```bash
+git clone --branch <tag> https://github.com/jordi-murgo/reversing-skills
+git -C reversing-skills rev-parse HEAD  # compare against the release digest you trust
+```
+
 After publication:
 
 ```bash
 npx skills add jordi-murgo/reversing-skills
 ```
+
+`npx skills add` resolves the latest published package and its dependency graph at run time;
+it does not pin reviewed bytes. Prefer the pinned `git clone` above, and treat the npx path
+as convenience only on a machine you already trust.
 
 Manual installation of selected skills:
 

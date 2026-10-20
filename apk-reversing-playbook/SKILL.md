@@ -4,7 +4,7 @@ description: "Trigger: reverse APK, decompile Android app, diff APK builds, insp
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # APK reversing playbook

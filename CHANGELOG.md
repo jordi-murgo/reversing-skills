@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add clean-room React Native/Hermes static analysis, Android Frida Gadget injection, and
+  offline mobile attestation reconstruction skills with explicit authorization, evidence,
+  redistribution, control-build, and backend-probing boundaries.
 - Harden artifact handling after a security review: reject `--name`/`--out` path escape in
   `decode.sh` and `rebuild-sign-install.sh`, refuse symlinked inputs outside intake trees in
   `intake-apk-set.py` and `triage-native-libs.py`, move the structural-diff venv recipe to a

@@ -4,7 +4,7 @@ description: "Trigger: reverse APK, decompile Android app, diff APK builds, insp
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.1"
+  version: "1.2.0"
 ---
 
 # APK reversing playbook
@@ -32,7 +32,10 @@ firmware, pure web applications, or targets outside written scope.
 | APK/APKS/XAPK/APKM, split directory, or installed package | Load `android-apk-intake` first |
 | Full-APK jadx fails or OOMs | Run `scripts/decode.sh`; retain isolated per-DEX trees |
 | Random native filename or encrypted-looking code | Load `android-packed-native` |
-| Frida, Java bridge, proxy, or pinning work | Load `android-frida-runtime` |
+| Frida server, Java bridge, proxy, or pinning work | Load `android-frida-runtime` |
+| Root-free instrumentation through a re-signed APK | Load `android-frida-gadget` |
+| React Native, Expo, or Hermes bundle | Load `react-native-hermes-analysis` |
+| Opaque app-generated device or integrity blob | Load `mobile-attestation-analysis` |
 | AndroidKeyStore aliases, KeyMint, TEE/StrongBox, or per-UID key behavior | Load `android-keystore-analysis` |
 | GuardIT callbacks or canonical native component found | Load `arxan-guardit-android` |
 | Two large or obfuscated builds | Load `android-structural-diff`; prepare each side once before comparison |
@@ -43,7 +46,8 @@ firmware, pure web applications, or targets outside written scope.
 1. Establish scope and acquire a complete artifact set through `android-apk-intake`.
 2. Inventory manifest, components, permissions, DEX, resources, certificates, and ABIs.
 3. Decode with `scripts/decode.sh`; search trust, crypto, tamper, JNI, and loader surfaces.
-4. Route structural diff, keystore, packed-native, or GuardIT evidence to its specialist skill.
+4. Route structural diff, keystore, packed-native, GuardIT, Hermes, Gadget, or attestation
+   evidence to its specialist skill.
 5. Run dynamic work only after version, transport, device, and evidence preflight.
 6. Reconcile static, runtime, and cross-version findings; do not trust one lane alone.
 7. Report identity, commands, evidence, failures, unknowns, and reproducible next actions.

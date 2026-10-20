@@ -18,6 +18,9 @@ hosts, captures, and findings stay in the consuming project.
 | `android-structural-diff` | Compare obfuscated APK/DEX versions and malware corpora, with prepared records and known-library noise suppression |
 | `android-keystore-analysis` | Map per-UID AndroidKeyStore aliases and KeyMint policy without claiming private-key extraction |
 | `android-frida-runtime` | Launch spawn-first runtime instrumentation with exact-version, bridge, transport and capture gates |
+| `android-frida-gadget` | Build and verify root-free Frida instrumentation through an authorized re-signed APK |
+| `react-native-hermes-analysis` | Recover routes, metadata, UI structure and API shapes from authorized Hermes bundles |
+| `mobile-attestation-analysis` | Classify and reconstruct client-generated mobile integrity or telemetry blobs offline |
 | `arxan-guardit-android` | Map GuardIT callbacks, prove packing, avoid reaction-state traps and recover runtime plaintext safely |
 | `reverse-engineering` | Route general native analysis across compilers, custom VMs, packing and anti-analysis |
 | `binary-diff` | Migrate evidence-backed symbols and semantics across related native builds |

@@ -4,15 +4,16 @@ description: "Trigger: Frida Android, Florida server, spawn protected app, Java 
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Android Frida runtime
 
 ## Activation Contract
 
-Load for authorized Android runtime instrumentation, exact-version Frida setup, app-layer
-TLS trust analysis, or remote emulator/device transport. Do not load for static-only work.
+Load for authorized server-backed Android runtime instrumentation, exact-version Frida setup,
+app-layer TLS trust analysis, or remote emulator/device transport. Do not load for static-only
+work; use `android-frida-gadget` when instrumentation requires a re-signed application.
 
 ## Hard Rules
 
@@ -34,6 +35,7 @@ TLS trust analysis, or remote emulator/device transport. Do not load for static-
 | Situation | Action |
 |---|---|
 | Remote server | Establish adb/SSH forwarding, then prove `frida-ps` connectivity |
+| Compatible server cannot run and APK mutation is authorized | Route to `android-frida-gadget` |
 | Stock server triggers evidenced instrumentation fingerprints | Replace it with matching-version Florida; keep client and scripts unchanged |
 | Frida 17 Java hook | Supply a bridge bundle in the same script context |
 | Version mismatch | Stop before process creation |

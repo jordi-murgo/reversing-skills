@@ -1,0 +1,36 @@
+# Target artifacts and runtime evidence never belong in this repository
+*.apk
+*.apks
+*.xapk
+*.apkm
+*.aab
+*.dex
+*.odex
+*.vdex
+*.so
+*.mitm
+*.har
+*.pcap
+*.pcapng
+*.jks
+*.keystore
+
+# Generated analysis output
+artifacts/
+evidence/
+captures/
+dumps/
+out/
+.cache/
+__pycache__/
+*.py[cod]
+
+# Local agent/editor/runtime state
+.agents/
+.claude/
+.omp/
+.atl/
+.opencode/
+.browser-session/
+.env
+.env.local

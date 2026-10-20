@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# Launch OMP with only the skills authored in this repository.
+
+set -euo pipefail
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+OMP_BIN="${OMP_BIN:-omp}"
+CHECK_ONLY=false
+
+usage() {
+    cat <<'EOF'
+Usage: scripts/omp-reversing-skills [--check] [OMP arguments...]
+
+Examples:
+  scripts/omp-reversing-skills
+  scripts/omp-reversing-skills --cwd /path/to/authorized-project
+  scripts/omp-reversing-skills --cwd /path/to/project --model opus
+  scripts/omp-reversing-skills --check
+
+The launcher reuses the active OMP profile for authentication and model settings, but replaces
+skill discovery for this process with an exact allowlist generated from this repository. It also
+disables extension discovery so extension-bundled skills cannot enter the session.
+EOF
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    usage
+    exit 0
+fi
+if [[ "${1:-}" == "--check" ]]; then
+    CHECK_ONLY=true
+    shift
+fi
+
+command -v "$OMP_BIN" >/dev/null 2>&1 || {
+    echo "ERR: OMP executable unavailable: $OMP_BIN" >&2
+    exit 1
+}
+
+skill_names=()
+for skill_file in "$ROOT"/*/SKILL.md; do
+    [[ -f "$skill_file" ]] || continue
+    skill_names+=("$(basename "$(dirname "$skill_file")")")
+done
+[[ ${#skill_names[@]} -gt 0 ]] || {
+    echo "ERR: no root-level */SKILL.md files found under $ROOT" >&2
+    exit 1
+}
+mapfile -t skill_names < <(printf '%s\n' "${skill_names[@]}" | LC_ALL=C sort -u)
+
+json_escape() {
+    local value="$1"
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    printf '%s' "$value"
+}
+
+skill_csv=""
+skill_json=""
+for name in "${skill_names[@]}"; do
+    escaped_name="$(json_escape "$name")"
+    if [[ -z "$skill_csv" ]]; then
+        skill_csv="$name"
+        skill_json="\"$escaped_name\""
+    else
+        skill_csv+=",$name"
+        skill_json+=",\"$escaped_name\""
+    fi
+done
+
+config_file="$(mktemp "${TMPDIR:-/tmp}/omp-reversing-skills.XXXXXX.json")"
+cleanup() { rm -f "$config_file"; }
+trap cleanup EXIT INT TERM
+escaped_root="$(json_escape "$ROOT")"
+cat > "$config_file" <<EOF
+{
+  "skills": {
+    "enabled": true,
+    "customDirectories": ["$escaped_root"],
+    "includeSkills": [$skill_json],
+    "ignoredSkills": [],
+    "enableCodexUser": false,
+    "enableClaudeUser": false,
+    "enableClaudeProject": false,
+    "enablePiUser": false,
+    "enablePiProject": false,
+    "enableAgentsUser": false,
+    "enableAgentsProject": false
+  }
+}
+EOF
+
+if [[ "$CHECK_ONLY" == "true" ]]; then
+    "$OMP_BIN" --config "$config_file" config get skills.customDirectories --json >/dev/null
+    "$OMP_BIN" --config "$config_file" config get skills.includeSkills --json >/dev/null
+    printf 'omp=%s\nroot=%s\nskill_count=%d\n' "$OMP_BIN" "$ROOT" "${#skill_names[@]}"
+    printf 'skill=%s\n' "${skill_names[@]}"
+    printf 'extensions=disabled\nforeign_skill_sources=disabled\nmanaged_skills=filtered_by_exact_allowlist\n'
+    exit 0
+fi
+
+"$OMP_BIN" \
+    --config "$config_file" \
+    --skills "$skill_csv" \
+    --no-extensions \
+    "$@"

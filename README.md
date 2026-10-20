@@ -1,4 +1,5 @@
 # reversing-skills
+[![Verify](https://github.com/jordi-murgo/reversing-skills/actions/workflows/verify.yml/badge.svg)](https://github.com/jordi-murgo/reversing-skills/actions/workflows/verify.yml)
 
 Evidence-first reverse-engineering skills for coding agents: native binaries, patch diffing,
 firmware, exploit stabilization, .NET, malware detection, Android, iOS, Frida runtime
@@ -60,22 +61,24 @@ reversing-skills/
 
 ## Install
 
-Clone a tagged revision and verify its release digest before running any repository script:
+Install the immutable release tag with a pinned CLI:
 
 ```bash
-git clone --branch <tag> https://github.com/jordi-murgo/reversing-skills
-git -C reversing-skills rev-parse HEAD  # compare against the release digest you trust
+DISABLE_TELEMETRY=1 npx --yes skills@1.7.4 add \
+  https://github.com/jordi-murgo/reversing-skills/tree/v0.1.0 \
+  --yes --copy
 ```
 
-After publication:
+The release source and CLI version are pinned; npm verifies the published package integrity.
+For manual verification, clone the tag and compare its commit with the GitHub Release target:
 
 ```bash
-npx skills add jordi-murgo/reversing-skills
+git clone --branch v0.1.0 https://github.com/jordi-murgo/reversing-skills
+git -C reversing-skills rev-parse HEAD
 ```
 
-`npx skills add` resolves the latest published package and its dependency graph at run time;
-it does not pin reviewed bytes. Prefer the pinned `git clone` above, and treat the npx path
-as convenience only on a machine you already trust.
+Installing `jordi-murgo/reversing-skills` without a tag follows the latest branch and is
+convenient for development, not a reviewed immutable release.
 
 Manual installation of selected skills:
 

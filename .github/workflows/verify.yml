@@ -1,0 +1,89 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DISABLE_TELEMETRY: '1'
+  DO_NOT_TRACK: '1'
+  SKILLS_CLI_VERSION: '1.7.4'
+  SKILLS_CLI_INTEGRITY: 'sha512-lHZJksE8UImNAr+LL6unqq7jERjdFw5EJasm17srycwL7rXHGdCmgu1L1ttLxUO9i3rdH+QQig+px0icHqLmRw=='
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # https://github.com/actions/checkout, revision below, MIT license.
+      # Local changes: none; action is referenced by immutable commit.
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      # https://github.com/actions/setup-node, revision below, MIT license.
+      # Local changes: none; action is referenced by immutable commit.
+      - name: Install pinned Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.20.0'
+          check-latest: false
+
+      # https://github.com/vercel-labs/skills at
+      # a80e4c9d12d607631249d4d7d059f835d4b2f13a, npm 1.7.4, MIT license.
+      # Local changes: none; npm tarball integrity is pinned above.
+
+      - name: Verify pinned skills CLI package
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(npm view "skills@${SKILLS_CLI_VERSION}" dist.integrity)"
+          test "$actual" = "$SKILLS_CLI_INTEGRITY"
+          npx --yes "skills@${SKILLS_CLI_VERSION}" --version
+
+      - name: Run repository suite
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Install all skills from a non-Git directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          trap 'rm -rf "$consumer"' EXIT
+          if git -C "$consumer" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            echo 'consumer fixture unexpectedly belongs to a Git worktree' >&2
+            exit 1
+          fi
+          cd "$consumer"
+          npx --yes "skills@${SKILLS_CLI_VERSION}" add "$GITHUB_WORKSPACE" \
+            --skill '*' --agent codex --copy --yes
+          PYTHONPATH="$GITHUB_WORKSPACE" python3 - <<'PY'
+          from pathlib import Path
+          from tests.test_repository import SKILLS, validate_skill
+
+          root = Path('.agents/skills')
+          found = {path.parent.name for path in root.glob('*/SKILL.md')}
+          expected = set(SKILLS)
+          if found != expected:
+              raise SystemExit(f'skill mismatch: missing={sorted(expected-found)} extra={sorted(found-expected)}')
+          for name in SKILLS:
+              errors = validate_skill(root / name / 'SKILL.md')
+              if errors:
+                  raise SystemExit(f'{name}: {errors}')
+          print(f'validated {len(found)} installed skills')
+          PY
+          for helper in \
+            .agents/skills/apk-reversing-playbook/scripts/dex-swap-repack.py \
+            .agents/skills/malware-analysis/scripts/extract-landing-indicators.py; do
+            test -x "$helper"
+            "$helper" --help >/dev/null
+          done

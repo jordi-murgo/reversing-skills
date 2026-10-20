@@ -19,6 +19,11 @@ import zipfile
 BUFFER_SIZE = 1024 * 1024
 DEX_ENTRY = re.compile(r"classes(?:[2-9]|[1-9][0-9]+)?\.dex")
 SUPPORTED_COMPRESSION = {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED}
+MAX_ARCHIVE_ENTRIES = 100_000
+MAX_MEMBER_BYTES = 2 * 1024 * 1024 * 1024
+MAX_AGGREGATE_BYTES = 8 * 1024 * 1024 * 1024
+MAX_COMPRESSION_RATIO = 2000
+ZIP64_THRESHOLD = (1 << 31) - 1
 
 
 def digest(path: Path) -> tuple[str, int]:
@@ -37,7 +42,7 @@ def safe_member(name: str) -> bool:
     stripped = name[:-1] if name.endswith("/") else name
     parts = stripped.split("/")
     return bool(stripped and all(part not in {"", ".", ".."} for part in parts)
-                and not re.fullmatch(r"[A-Za-z]:", parts[0]))
+                and not re.match(r"^[A-Za-z]:", parts[0]))
 
 
 def validate_dex(path: Path) -> dict[str, object]:
@@ -61,12 +66,17 @@ def validate_dex(path: Path) -> dict[str, object]:
             "bytes": size}
 
 
-def validate_archive(archive: zipfile.ZipFile, dex_entry: str) -> zipfile.ZipInfo:
+def validate_archive(archive: zipfile.ZipFile, dex_entry: str, max_entries: int,
+                     max_member_bytes: int, max_aggregate_bytes: int,
+                     max_compression_ratio: int) -> zipfile.ZipInfo:
     infos = archive.infolist()
+    if len(infos) > max_entries:
+        raise ValueError(f"APK exceeds {max_entries} entries: {len(infos)}")
     duplicates = sorted(name for name, count in Counter(i.filename for i in infos).items()
                         if count > 1)
     if duplicates:
         raise ValueError(f"APK contains duplicate member names: {duplicates[0]}")
+    expanded = 0
     for info in infos:
         if not safe_member(info.filename):
             raise ValueError(f"APK contains unsafe member: {info.filename}")
@@ -76,6 +86,17 @@ def validate_archive(archive: zipfile.ZipFile, dex_entry: str) -> zipfile.ZipInf
             raise ValueError(
                 f"APK member uses unsupported compression {info.compress_type}: {info.filename}"
             )
+        if info.file_size > max_member_bytes:
+            raise ValueError(
+                f"APK member exceeds {max_member_bytes} bytes: {info.filename}"
+            )
+        if info.file_size / max(info.compress_size, 1) > max_compression_ratio:
+            raise ValueError(
+                f"APK member compression ratio exceeds {max_compression_ratio}: {info.filename}"
+            )
+        expanded += info.file_size
+        if expanded > max_aggregate_bytes:
+            raise ValueError(f"APK exceeds {max_aggregate_bytes} aggregate bytes")
     matches = [info for info in infos if info.filename == dex_entry]
     if not matches:
         raise ValueError(f"DEX entry not found in APK: {dex_entry}")
@@ -88,16 +109,32 @@ def consume_member(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> None:
             pass
 
 
-def repack(apk: Path, replacement: Path, dex_entry: str, temporary: Path) -> dict[str, object]:
+def repack(apk: Path, replacement: Path, dex_entry: str, temporary: Path,
+           max_entries: int, max_member_bytes: int, max_aggregate_bytes: int,
+           max_compression_ratio: int) -> dict[str, object]:
+    replacement_size = replacement.stat().st_size
+    if replacement_size > max_member_bytes:
+        raise ValueError(f"replacement DEX exceeds {max_member_bytes} bytes")
     with zipfile.ZipFile(apk, "r") as source:
-        target = validate_archive(source, dex_entry)
-        entry_count = len(source.infolist())
+        target = validate_archive(
+            source, dex_entry, max_entries, max_member_bytes,
+            max_aggregate_bytes, max_compression_ratio,
+        )
+        infos = source.infolist()
+        entry_count = len(infos)
+        output_expanded = sum(info.file_size for info in infos) - target.file_size + replacement_size
+        if output_expanded > max_aggregate_bytes:
+            raise ValueError(f"output APK exceeds {max_aggregate_bytes} aggregate bytes")
         consume_member(source, target)
         with zipfile.ZipFile(temporary, "w", allowZip64=True) as output:
             output.comment = source.comment
-            for info in source.infolist():
+            for info in infos:
                 copied = copy.copy(info)
-                with output.open(copied, "w", force_zip64=True) as outgoing:
+                expected_size = replacement_size if info.filename == dex_entry else info.file_size
+                copied.file_size = expected_size
+                with output.open(
+                    copied, "w", force_zip64=expected_size >= ZIP64_THRESHOLD
+                ) as outgoing:
                     if info.filename == dex_entry:
                         with replacement.open("rb") as incoming:
                             shutil.copyfileobj(incoming, outgoing, BUFFER_SIZE)
@@ -125,10 +162,18 @@ def main() -> int:
                         help="new unsigned APK path; existing paths are refused")
     parser.add_argument("--authorization-ref", required=True,
                         help="written APK-mutation authorization reference")
+    parser.add_argument("--max-entries", type=int, default=MAX_ARCHIVE_ENTRIES)
+    parser.add_argument("--max-member-bytes", type=int, default=MAX_MEMBER_BYTES)
+    parser.add_argument("--max-aggregate-bytes", type=int, default=MAX_AGGREGATE_BYTES)
+    parser.add_argument("--max-compression-ratio", type=int, default=MAX_COMPRESSION_RATIO)
     args = parser.parse_args()
 
     if not DEX_ENTRY.fullmatch(args.dex_entry):
         parser.error("--dex-entry must be classes.dex or classesN.dex with N >= 2")
+    for option in ("max_entries", "max_member_bytes", "max_aggregate_bytes",
+                   "max_compression_ratio"):
+        if getattr(args, option) <= 0:
+            parser.error(f"--{option.replace('_', '-')} must be positive")
 
     for label, supplied in (("APK", args.apk), ("replacement DEX", args.replacement_dex)):
         expanded = supplied.expanduser()
@@ -157,7 +202,11 @@ def main() -> int:
         os.close(descriptor)
         temporary = Path(temporary_name)
         try:
-            facts = repack(apk, replacement, args.dex_entry, temporary)
+            facts = repack(
+                apk, replacement, args.dex_entry, temporary,
+                args.max_entries, args.max_member_bytes,
+                args.max_aggregate_bytes, args.max_compression_ratio,
+            )
             output_hash, output_size = digest(temporary)
             os.link(temporary, output)
         finally:

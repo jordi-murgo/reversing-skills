@@ -98,6 +98,16 @@ class DexSwapTests(unittest.TestCase):
 
             safe = root / "safe.apk"
             write_apk(safe, original.read_bytes())
+            budget_output = root / "budget-output.apk"
+            budget = subprocess.run(
+                [sys.executable, str(SCRIPT), str(safe), str(replacement),
+                 "--dex-entry", "classes2.dex", "--output", str(budget_output),
+                 "--authorization-ref", "ROE-test", "--max-entries", "1"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertNotEqual(budget.returncode, 0)
+            self.assertIn("exceeds 1 entries", budget.stderr)
+            self.assertFalse(budget_output.exists())
             output.write_bytes(b"do-not-overwrite")
             existing = subprocess.run(
                 [sys.executable, str(SCRIPT), str(safe), str(replacement),

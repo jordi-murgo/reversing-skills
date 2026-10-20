@@ -42,6 +42,11 @@ class LandingIndicatorTests(unittest.TestCase):
                 report["aggregate"]["domains"],
                 ["landing.example", "payload.example", "redirect.example"],
             )
+            self.assertIn(
+                "https://landing.example/download?x=REDACTED",
+                report["aggregate"]["urls"],
+            )
+            self.assertNotIn("x=1", report_text)
             record = report["files"][0]
             self.assertIn("/install-command.txt", record["relative_references"])
             candidate = record["decoded_candidates"][0]
@@ -49,6 +54,20 @@ class LandingIndicatorTests(unittest.TestCase):
             self.assertIn("curl", candidate["markers"])
             self.assertIn("shell-pipe", candidate["markers"])
             self.assertNotIn(command.decode("ascii"), report_text)
+
+            limited_output = root / "limited.json"
+            limited = subprocess.run(
+                [sys.executable, str(SCRIPT), str(capture), "--output",
+                 str(limited_output), "--authorization-ref", "ROE-test",
+                 "--max-total-decoded-bytes", "4"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(limited.returncode, 0, limited.stderr)
+            limited_report = json.loads(limited_output.read_text(encoding="utf-8"))
+            self.assertEqual(
+                limited_report["files"][0]["truncation_reasons"],
+                ["decoded-byte-budget"],
+            )
 
     def test_negative_fixtures_refuse_existing_output_and_size_overrun(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -75,6 +94,19 @@ class LandingIndicatorTests(unittest.TestCase):
             self.assertNotEqual(oversized.returncode, 0)
             self.assertIn("exceeds --max-bytes", oversized.stderr)
             self.assertFalse(fresh.exists())
+
+            second = root / "second.html"
+            second.write_text("fixture", encoding="utf-8")
+            too_many = root / "too-many.json"
+            count_limited = subprocess.run(
+                [sys.executable, str(SCRIPT), str(capture), str(second),
+                 "--output", str(too_many), "--authorization-ref", "ROE-test",
+                 "--max-captures", "1"],
+                text=True, capture_output=True, check=False,
+            )
+            self.assertNotEqual(count_limited.returncode, 0)
+            self.assertIn("exceed --max-captures", count_limited.stderr)
+            self.assertFalse(too_many.exists())
 
 
 if __name__ == "__main__":

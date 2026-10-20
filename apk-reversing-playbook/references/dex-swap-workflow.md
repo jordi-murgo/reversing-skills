@@ -23,10 +23,11 @@ python3 scripts/dex-swap-repack.py original.apk classes2-patched.dex \
 ```
 
 The helper rejects symlinked inputs, existing outputs, unsafe or duplicate ZIP members, unsupported
-compression, a missing target entry, and malformed DEX headers. It streams unchanged members,
-preserves their ZIP metadata and ordering, and preserves the target entry's original stored/deflated
-policy. The original APK is opened read-only. Rewriting invalidates existing signatures; the JSON
-result therefore always reports signing as required.
+compression, archive entry/size/ratio budget violations, a missing target entry, and malformed DEX
+headers. Explicit `--max-*` flags can widen budgets for an evidenced large artifact. It streams
+unchanged members, preserves their ZIP metadata and ordering, and preserves the target entry's
+original stored/deflated policy. The original APK is opened read-only. Rewriting invalidates
+existing signatures; the JSON result therefore always reports signing as required.
 
 Run current pinned Android build-tools after replacement:
 

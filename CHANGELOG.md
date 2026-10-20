@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-10-20
+
+- Add pinned CI for repository contracts, negative fixtures, the full test suite, and an
+  `npx skills add` consumer install from a directory that is not a Git worktree.
+- Bound DEX replacement by archive entry, member, aggregate-size, and compression-ratio
+  budgets; bound passive landing analysis by capture count and aggregate decoded bytes;
+  normalize IDN hosts and remove URL credentials and query values from reports.
 - Add a safe streaming DEX-only APK replacement helper, a clean-room firmware PoC workflow
   for engagements without hardware, and a local-only landing-page indicator extractor with
   bounded Base64 inspection and passive campaign guidance.

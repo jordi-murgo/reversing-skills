@@ -17,6 +17,14 @@ SKILLS = (
     "android-keystore-analysis",
     "android-frida-runtime",
     "arxan-guardit-android",
+    "binary-diff",
+    "patch-diff-exploit",
+    "firmware-pentest",
+    "pwn-chain",
+    "dotnet-reverse",
+    "malware-analysis",
+    "reverse-engineering",
+    "ios-app-reversing",
 )
 SECTIONS = (
     "## Activation Contract",

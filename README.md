@@ -17,8 +17,16 @@ hosts, captures, and findings stay in the consuming project.
 | `android-packed-native` | Rank packed/encrypted ELF candidates from SONAME, exports, entropy, imports and ARM64 structure |
 | `android-structural-diff` | Compare obfuscated APK/DEX versions and malware corpora, with prepared records and known-library noise suppression |
 | `android-keystore-analysis` | Map per-UID AndroidKeyStore aliases and KeyMint policy without claiming private-key extraction |
-| `android-frida-runtime` | Explain Frida versus Florida, then launch spawn-first with exact-version, bridge, transport and capture gates |
+| `android-frida-runtime` | Launch spawn-first runtime instrumentation with exact-version, bridge, transport and capture gates |
 | `arxan-guardit-android` | Map GuardIT callbacks, prove packing, avoid reaction-state traps and recover runtime plaintext safely |
+| `reverse-engineering` | Route general native analysis across compilers, custom VMs, packing and anti-analysis |
+| `binary-diff` | Migrate evidence-backed symbols and semantics across related native builds |
+| `patch-diff-exploit` | Reconstruct security fixes and validate bounded PoCs against before/after builds |
+| `firmware-pentest` | Extract, inventory, emulate and test authorized embedded firmware |
+| `pwn-chain` | Stabilize an understood memory-corruption primitive into a repeatable lab exploit |
+| `dotnet-reverse` | Identify, deobfuscate, inspect and patch managed .NET assemblies |
+| `malware-analysis` | Produce artifact lineage, behavior, IOCs and tested YARA/Sigma detections |
+| `ios-app-reversing` | Analyze signed iOS bundles, Mach-O/ObjC/Swift code and exact-build runtime behavior |
 
 ## Design
 
@@ -35,32 +43,12 @@ hosts, captures, and findings stay in the consuming project.
 
 ```text
 reversing-skills/
-├── apk-reversing-playbook/
+├── <skill>/
 │   ├── SKILL.md
 │   ├── references/
-│   └── scripts/
-├── android-apk-intake/
-│   ├── SKILL.md
-│   ├── assets/
-│   └── scripts/
-├── android-packed-native/
-│   ├── SKILL.md
-│   ├── references/
-│   └── scripts/
-├── android-structural-diff/
-│   ├── SKILL.md
-│   └── references/
-├── android-keystore-analysis/
-│   ├── SKILL.md
-│   └── references/
-├── android-frida-runtime/
-│   ├── SKILL.md
-│   ├── references/
-│   └── scripts/
-├── arxan-guardit-android/
-│   ├── SKILL.md
-│   ├── assets/
-│   └── references/
+│   ├── assets/          # optional schemas/templates
+│   ├── scripts/         # optional deterministic helpers
+│   └── tests/           # optional portable behavior tests
 ├── docs/
 ├── scripts/
 │   └── omp-reversing-skills

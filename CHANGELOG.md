@@ -12,6 +12,10 @@
   per-member, aggregate, and compression-ratio budgets (`INTAKE_MAX_*`, tuned for split
   sets); and signing passwords can come from `REBUILD_STORE_PASS`/`REBUILD_KEY_PASS` to
   stay out of process arguments.
+- Add clean-room, contract-conformant skills for general native reversing, symbol migration,
+  patch-diff analysis, firmware assessment, exploit stabilization, .NET reversing, malware
+  detection engineering, and iOS application reversing. Engagement artifacts and unlicensed
+  third-party challenge material were intentionally not copied.
 
 - Establish the repository contract and offline verification suite.
 - Add split-aware Android artifact intake and evidence manifests.

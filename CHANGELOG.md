@@ -6,11 +6,12 @@
   `decode.sh` and `rebuild-sign-install.sh`, refuse symlinked inputs outside intake trees in
   `intake-apk-set.py` and `triage-native-libs.py`, move the structural-diff venv recipe to a
   `mktemp`-based path with session cleanup, and document digest verification for installs.
-- Close the remaining reviewed warnings: the OMP launcher now derives its skill allowlist
-  from `git ls-files` so generated or untracked `SKILL.md` trees cannot enter the agent
-  session; archive intake enforces entry-count, per-member, aggregate, and compression-ratio
-  budgets (`INTAKE_MAX_*`, tuned for split sets); and signing passwords can come from
-  `REBUILD_STORE_PASS`/`REBUILD_KEY_PASS` to stay out of process arguments.
+- Close the remaining reviewed warnings: the OMP launcher now excludes gitignored or
+  gitignore-listed skill directories while keeping every plain `*/SKILL.md` installable
+  through `npx skills add` in non-git projects; archive intake enforces entry-count,
+  per-member, aggregate, and compression-ratio budgets (`INTAKE_MAX_*`, tuned for split
+  sets); and signing passwords can come from `REBUILD_STORE_PASS`/`REBUILD_KEY_PASS` to
+  stay out of process arguments.
 
 - Establish the repository contract and offline verification suite.
 - Add split-aware Android artifact intake and evidence manifests.

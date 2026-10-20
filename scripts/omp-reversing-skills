@@ -38,12 +38,24 @@ command -v "$OMP_BIN" >/dev/null 2>&1 || {
 }
 
 skill_names=()
-while IFS= read -r skill_file; do
-    [[ -f "$ROOT/$skill_file" ]] || continue
-    skill_names+=("$(basename "$(dirname "$skill_file")")")
-done < <(git -C "$ROOT" ls-files '*/SKILL.md')
+for skill_file in "$ROOT"/*/SKILL.md; do
+    [[ -f "$skill_file" ]] || continue
+    skill_dir="$(basename "$(dirname "$skill_file")")"
+    if [[ -d "$ROOT/.git" ]] \
+        && git -C "$ROOT" check-ignore -q "$skill_file" &>/dev/null; then
+        echo "WARN: ignoring gitignored skill directory: $skill_dir ($skill_file)" >&2
+        continue
+    fi
+    # Without git a plain .gitignore copy still marks generated output:
+    if [[ ! -d "$ROOT/.git" && -f "$ROOT/.gitignore" ]] \
+        && grep -qE "(^|/)${skill_dir}/?([[:space:]]|$)|^${skill_dir}/?$" "$ROOT/.gitignore"; then
+        echo "WARN: ignoring gitignore-listed skill directory: $skill_dir ($skill_file)" >&2
+        continue
+    fi
+    skill_names+=("$skill_dir")
+done
 [[ ${#skill_names[@]} -gt 0 ]] || {
-    echo "ERR: no git-tracked */SKILL.md files found under $ROOT" >&2
+    echo "ERR: no root-level */SKILL.md files found under $ROOT" >&2
     exit 1
 }
 mapfile -t skill_names < <(printf '%s\n' "${skill_names[@]}" | LC_ALL=C sort -u)

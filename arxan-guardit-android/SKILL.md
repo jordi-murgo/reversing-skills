@@ -38,6 +38,7 @@ legitimate artifact. Load `android-apk-intake`, `android-packed-native`, and
 | Stock Frida fails but exact-version Florida survives a controlled baseline | Attribute only the runtime-fingerprint difference; continue cause-level mapping |
 | Verdict changes only after hook tampering | Restore original flow; classify reaction-state guard |
 | Property/libc hooks have no effect | Investigate direct `svc` and self-VMA evidence |
+| Direct property-area or `/proc` syscall source proven on an AVD | Load `android-rooted-emulator`; modify only a copied stock-derived lab |
 | Unpacker changes page permissions | Capture the written range after the transition |
 | Runtime seed or mapping absent | Stop; report residual unknown instead of guessing |
 
@@ -47,7 +48,7 @@ legitimate artifact. Load `android-apk-intake`, `android-packed-native`, and
 2. Prove packed-native ownership and unpacker boundaries.
 3. Spawn with exact-version anti-detection instrumentation and telemetry-only hooks.
 4. Change one environmental cause at a time and preserve the reaction path.
-5. Escalate emulator hiding to authorized kernel/KPM controls when direct syscalls are proven.
+5. Load `android-rooted-emulator` before escalating proven direct-syscall evidence to kernel/KPM controls.
 6. Dump and hash runtime plaintext only after a verified unpacking write.
 7. Reconcile callbacks, JNI registration, recovered code, and app behavior.
 

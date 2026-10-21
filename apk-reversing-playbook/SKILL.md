@@ -36,6 +36,7 @@ firmware, pure web applications, or targets outside written scope.
 | Random native filename or encrypted-looking code | Load `android-packed-native` |
 | Frida server, Java bridge, proxy, or pinning work | Load `android-frida-runtime` |
 | Root-free instrumentation through a re-signed APK | Load `android-frida-gadget` |
+| Rooted AVD, APatch/KernelPatch, or custom emulator kernel | Load `android-rooted-emulator` before Frida runtime |
 | React Native, Expo, or Hermes bundle | Load `react-native-hermes-analysis` |
 | Opaque app-generated device or integrity blob | Load `mobile-attestation-analysis` |
 | AndroidKeyStore aliases, KeyMint, TEE/StrongBox, or per-UID key behavior | Load `android-keystore-analysis` |

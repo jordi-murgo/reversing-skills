@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-10-21
+
+- Add `android-rooted-emulator` with reproducible baseline/lab AVD creation, stock-kernel
+  APatch/KernelPatch derivation, KMI and tool-version gates, cause-level root/emulator concealment,
+  kernel/KPM escalation controls, source custody, and a portable lab manifest.
+
 - Add `security-analysis-reporting` with application, firmware, malware-triage, and full malware
   templates; evidence-state, severity, confidence, lineage, IOC, and remediation contracts; and
   routing from the application, firmware, malware, and general reverse-engineering skills.

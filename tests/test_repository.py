@@ -17,6 +17,7 @@ SKILLS = (
     "android-keystore-analysis",
     "android-frida-runtime",
     "android-frida-gadget",
+    "android-rooted-emulator",
     "react-native-hermes-analysis",
     "mobile-attestation-analysis",
     "arxan-guardit-android",

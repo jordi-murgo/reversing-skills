@@ -42,6 +42,7 @@ work; use `android-frida-gadget` when instrumentation requires a re-signed appli
 | Generic bypass kit proposed | Review one module and exact overload; reject catch-all execution |
 | WebView generic error | Remove Conscrypt hooks and inspect app-owned trust paths |
 | Protected app already running | Restart and spawn; do not attach the Java bridge |
+| Rooted AVD, patched kernel, or evidenced root/emulator concealment needed | Load `android-rooted-emulator` before server deployment |
 
 ## Execution Steps
 

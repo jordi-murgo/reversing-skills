@@ -28,6 +28,7 @@ SKILLS = (
     "malware-analysis",
     "reverse-engineering",
     "ios-app-reversing",
+    "security-analysis-reporting",
 )
 SECTIONS = (
     "## Activation Contract",

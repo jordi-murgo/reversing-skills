@@ -32,6 +32,7 @@ Load when the primary task is understanding an authorized compiled, packed, obfu
 | Anti-debug/anti-VM behavior | Observe the evidence source; avoid reaction-layer tampering |
 | Custom dispatcher/state machine | Recover state, operands, and transfer semantics before lifting |
 | Static wall remains | Emulate or instrument the narrowest verified boundary |
+| Formal app, firmware, or malware deliverable | Load `security-analysis-reporting` after evidence collection |
 
 ## Execution Steps
 

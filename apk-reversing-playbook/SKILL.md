@@ -42,6 +42,7 @@ firmware, pure web applications, or targets outside written scope.
 | GuardIT callbacks or canonical native component found | Load `arxan-guardit-android` |
 | Two large or obfuscated builds | Load `android-structural-diff`; prepare each side once before comparison |
 | Re-signed APK installation | Expect signer mismatch; never silently uninstall the store build |
+| Formal application or malware deliverable | Load `security-analysis-reporting`; keep product context in the primary report |
 
 ## Execution Steps
 

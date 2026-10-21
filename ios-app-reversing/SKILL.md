@@ -32,6 +32,7 @@ Load for an authorized IPA, decrypted app bundle, or installed iOS application. 
 | Native-only path | Use Mach-O disassembly and dyld/import evidence |
 | Runtime-only secret/config | Hook the narrowest observed API after static mapping |
 | Pinning/jailbreak reaction | Map detection source and reaction separately |
+| Formal application or malware deliverable | Load `security-analysis-reporting`; keep product context in the primary report |
 
 ## Execution Steps
 

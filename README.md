@@ -31,6 +31,7 @@ hosts, captures, and findings stay in the consuming project.
 | `dotnet-reverse` | Identify, deobfuscate, inspect and patch managed .NET assemblies |
 | `malware-analysis` | Analyze samples or passive landing captures and produce defensible IOCs and detections |
 | `ios-app-reversing` | Analyze signed iOS bundles, Mach-O/ObjC/Swift code and exact-build runtime behavior |
+| `security-analysis-reporting` | Turn app, firmware, and malware evidence into client-ready reports with explicit triage and full-malware gates |
 
 ## Design
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add `security-analysis-reporting` with application, firmware, malware-triage, and full malware
+  templates; evidence-state, severity, confidence, lineage, IOC, and remediation contracts; and
+  routing from the application, firmware, malware, and general reverse-engineering skills.
+
 ## 0.1.0 - 2026-10-21
 
 - Add pinned CI for repository contracts, negative fixtures, the full test suite, and an

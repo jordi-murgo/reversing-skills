@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+
+- `android-frida-runtime` 1.2.0: Conscrypt `TrustManagerImpl` contract on Android 14 — real
+  entry points, `List` returns on every overload including the void-looking
+  `checkServerTrusted`, and the OkHttp dispatcher NPE that a wrong return type produces.
+  Decision gates and reference sections for hidden app-owned OkHttp pinning interceptors
+  (unexplained NPE on a pinned client as a discovery signal), classes that ship in a DEX
+  but resolve only through a protector runtime-downloaded dex on a non-default loader
+  (`enumerateClassLoaders` + `ClassFactory.get` retry-install), and the rule that an
+  APK-embedded certificate is never reported as protecting a payload without a runtime
+  binding chain.
+- `arxan-guardit-android` 1.2.0: layered-pinning rule (runtime-dex TrustManager plus a
+  separate OkHttp `Interceptor` reading `peerCertificates`; neutralize the interceptor at
+  its own entry), the interceptor-NPE discovery gate, the runtime certificate-binding gate
+  (source → `CertificateFactory` → SPKI match → `doFinal`; rotated material under the same
+  asset name is not caught by startup captures), and the rotating runtime-dex loader gate.
 
 ## 0.2.0 - 2026-10-21
 

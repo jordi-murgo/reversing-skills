@@ -4,7 +4,7 @@ description: "Trigger: Frida Android, Florida server, spawn protected app, Java 
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.1"
+  version: "1.2.0"
 ---
 
 # Android Frida runtime
@@ -43,6 +43,10 @@ work; use `android-frida-gadget` when instrumentation requires a re-signed appli
 | WebView generic error | Remove Conscrypt hooks and inspect app-owned trust paths |
 | Protected app already running | Restart and spawn; do not attach the Java bridge |
 | Rooted AVD, patched kernel, or evidenced root/emulator concealment needed | Load `android-rooted-emulator` before server deployment |
+| Unexplained OkHttp `NullPointerException` on a pinned client | Suspect a hidden app-owned pinning interceptor reading `peerCertificates`; enumerate `*Pinning*` classes across all loaders before changing hooks |
+| `ClassNotFoundException` for a class present in shipped DEX | Class lives in a runtime-downloaded dex behind a non-default loader; switch to `enumerateClassLoaders` + `ClassFactory.get` retry-install |
+| Conscrypt `checkServerTrusted` hook genuinely required | Return an empty `List`, never `undefined`; a wrong type NPEs inside OkHttp and kills the dispatcher thread |
+| Claim that an APK-embedded certificate protects a specific payload | Never conclude from static analysis or startup capture alone; bind it at runtime (source → `CertificateFactory` → SPKI → `doFinal`) |
 
 ## Execution Steps
 

@@ -4,7 +4,7 @@ description: "Trigger: Arxan Android, GuardIT, native tamper callbacks, emulator
 license: MIT
 metadata:
   author: reversing-skills
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Arxan/GuardIT Android
@@ -27,6 +27,10 @@ legitimate artifact. Load `android-apk-intake`, `android-packed-native`, and
   GuardIT is absent or as a bypass for root, emulator, syscall, VMA, or integrity checks.
 - Treat direct syscalls and self-VMA scans as kernel-visible evidence; libc/property hooks
   cannot hide calls they never mediate.
+- Pinning in GuardIT-hardened apps can be layered: an app TrustManager (in the runtime dex)
+  plus a separate OkHttp `Interceptor` reading `handshake.peerCertificates`. Neutralize the
+  interceptor at its own entry (`intercept → chain.proceed(chain.request())`) instead of
+  forcing the platform validator to lie for it.
 - Use a copied emulator image and preserve known-working kernel/initrd artifacts.
 
 ## Decision Gates
@@ -41,6 +45,9 @@ legitimate artifact. Load `android-apk-intake`, `android-packed-native`, and
 | Direct property-area or `/proc` syscall source proven on an AVD | Load `android-rooted-emulator`; modify only a copied stock-derived lab |
 | Unpacker changes page permissions | Capture the written range after the transition |
 | Runtime seed or mapping absent | Stop; report residual unknown instead of guessing |
+| Unexplained OkHttp `NullPointerException` inside a `*Pinning*Interceptor` during a TLS bypass | A second app-owned pinning layer above the TrustManager was just revealed; map its class and intercept path in every loader before hooking |
+| APK-embedded certificate claimed to protect credentials or payloads | Bind at runtime before reporting: hook source (`AssetManager.open`), `CertificateFactory.generateCertificate`, `Cipher.init`, and `Cipher.doFinal` in one run; the `init` key SPKI hash must equal the certificate's public key. Startup captures and static identity are not binding proof — protectors routinely ship rotated material under the same asset name while the legacy certificate still loads for trust/pinning |
+| Runtime dex with rotating name under the app data directory, appended to the PathClassLoader | Expect trust, collector, and interceptor classes only there; hook via `enumerateClassLoaders` + `ClassFactory.get` with retry-install |
 
 ## Execution Steps
 
